@@ -1,0 +1,313 @@
+import java.awt.Point;
+class playfairCipher {
+private static char[][] charTable; private static Point[] positions;
+private static String prepareText(String s, boolean chgJtoI) { s = s.toUpperCase().replaceAll("[^A-Z]", "");
+} return chgJtoI ? s.replace("J", "I") : s.replace("Q", "");
+private static void createTbl(String key, boolean chgJtoI) {
+charTable = new char[5][5];
+positions = new Point[26];
+String s = prepareText(key + "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+chgJtoI);
+int len = s.length();
+for (int i = 0, k = 0; i < len; i++) { char c = s.charAt(i);
+   if (positions[c - 'A'] == null) {
+charTable[k / 5][k % 5] = c;
+positions[c - 'A'] = new Point(k % 5, k / 5);
+} } } k++;
+private static String codec(StringBuilder txt, int dir) { int len = txt.length();
+for (int i = 0; i < len; i += 2) {
+char a = txt.charAt(i);
+char b = txt.charAt(i + 1);
+int row1 = positions[a - 'A'].y; int row2 = positions[b - 'A'].y; int col1 = positions[a - 'A'].x; int col2 = positions[b - 'A'].x; if (row1 == row2) {
+col1 = (col1 + dir) % 5;
+col2 = (col2 + dir) % 5; } else if (col1 == col2) {
+row1 = (row1 + dir) % 5;
+row2 = (row2 + dir) % 5; } else {
+int tmp = col1;
+col1 = col2; } col2 = tmp;
+txt.setCharAt(i, charTable[row1][col1]);
+} txt.setCharAt(i + 1, charTable[row2][col2]);
+} returntxt.toString();
+private static String encode(String s) { StringBuilder sb = new StringBuilder(s); for (int i = 0; i < sb.length(); i += 2) {
+if (i == sb.length() - 1) {
+ 
+sb.append(sb.length() % 2 == 1 ? 'X' : ""); } else if (sb.charAt(i) == sb.charAt(i + 1)) {
+} } sb.insert(i + 1, 'X'); } return codec(sb, 1);
+private static String decode(String s) {
+} return codec(new StringBuilder(s), 4);
+public static void main(String[] args) throws java.lang.Exception {
+String key = "CSE";
+String txt = "Security Lab"; /* make sure string length is even */ /* change J
+to I */
+boolean chgJtoI = true;
+createTbl(key, chgJtoI);
+String enc = encode(prepareText(txt, chgJtoI)); System.out.println("Simulating Playfair Cipher\n----------------------"); System.out.println("Input Message : " + txt); System.out.println("Encrypted Message : " + enc);
+} } System.out.println("Decrypted Message : " + decode(enc));
+
+
+
+
+
+
+#hillcipher
+
+class hillCipher {
+/* 3x3 key matrix for 3 characters at once */
+public static int[][] keymat = new int[][] { { 1, 2, 1 }, { 2, 3, 2 },
+{ 2, 2, 1 } }; /* key inverse matrix */
+public static int[][] invkeymat = new int[][] { { -1, 0, 1 }, { 2, -1, 0 }, { -2, 2, -1
+} };
+public static String key = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+private static String encode(char a, char b, char c) { String ret = "";
+int x, y, z;
+int posa = (int) a - 65;
+int posb = (int) b - 65;
+int posc = (int) c - 65;
+x = posa * keymat[0][0] + posb * keymat[1][0] + posc * keymat[2][0]; y = posa * keymat[0][1] + posb * keymat[1][1] + posc * keymat[2][1]; z = posa * keymat[0][2] + posb * keymat[1][2] + posc * keymat[2][2]; a = key.charAt(x % 26);
+b = key.charAt(y % 26);
+   c = key.charAt(z % 26);
+ret = "" + a + b + c; } returnret;
+private static String decode(char a, char b, char c) { String ret = "";
+int x, y, z;
+int posa = (int) a - 65;
+int posb = (int) b - 65;
+int posc = (int) c - 65;
+x = posa * invkeymat[0][0] + posb * invkeymat[1][0] + posc *
+invkeymat[2][0];
+y = posa * invkeymat[0][1] + posb * invkeymat[1][1] + posc *
+invkeymat[2][1];
+z = posa * invkeymat[0][2] + posb * invkeymat[1][2] + posc *
+invkeymat[2][2];
+a = key.charAt((x % 26 < 0) ? (26 + x % 26) : (x % 26));
+b = key.charAt((y % 26 < 0) ? (26 + y % 26) : (y % 26)); c = key.charAt((z % 26 < 0) ? (26 + z % 26) : (z % 26)); ret = "" + a + b + c;
+} returnret;
+public static void main(String[] args) throws java.lang.Exception { String msg;
+String enc = "";
+String dec = "";
+int n;
+msg = ("SecurityLaboratory");
+System.out.println("simulation of Hill Cipher\n-------------------------"); System.out.println("Input message : " + msg);
+msg = msg.toUpperCase();
+msg = msg.replaceAll("\\s", "");
+/* remove spaces */ n = msg.length() % 3;
+/* append padding text X */ if (n != 0) {
+for (int i = 1; i <= (3 - n); i++) { } msg += 'X';
+ 
+}
+System.out.println("padded message : " + msg);
+char[] pdchars = msg.toCharArray();
+for (int i = 0; i < msg.length(); i += 3) {
+} enc += encode(pdchars[i], pdchars[i + 1], pdchars[i + 2]);
+System.out.println("encoded message : " + enc);
+char[] dechars = enc.toCharArray();
+for (int i = 0; i < enc.length(); i += 3) {
+} dec += decode(dechars[i], dechars[i + 1], dechars[i + 2]);
+} } System.out.println("decoded message : " + dec);
+
+
+
+
+
+
+
+#DES
+
+import java.security.InvalidKeyException; import java.security.NoSuchAlgorithmException;
+import javax.crypto.BadPaddingException; import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException; import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException; import javax.crypto.SecretKey;
+public class DES
+{
+public static void main(String[] argv) {
+try{
+System.out.println("Message Encryption Using DES Algorithm\n-------");
+KeyGenerator keygenerator = KeyGenerator.getInstance("DES"); SecretKey myDesKey = keygenerator.generateKey();
+Cipher desCipher;
+  
+desCipher = Cipher.getInstance("DES/ECB/PKCS5Padding"); desCipher.init(Cipher.ENCRYPT_MODE, myDesKey); byte[] text = "Secret Information ".getBytes(); System.out.println("Message [Byte Format] : " + text); System.out.println("Message : " + new String(text));
+byte[] textEncrypted = desCipher.doFinal(text); System.out.println("Encrypted Message: " + textEncrypted); desCipher.init(Cipher.DECRYPT_MODE, myDesKey); byte[] textDecrypted = desCipher.doFinal(textEncrypted); System.out.println("Decrypted Message: " + new
+String(textDecrypted));
+}catch(NoSuchAlgorithmException e){ e.printStackTrace();
+}catch(NoSuchPaddingException e){ e.printStackTrace();
+}catch(InvalidKeyException e){ e.printStackTrace();
+}catch(IllegalBlockSizeException e){ e.printStackTrace();
+}catch(BadPaddingException e){
+e.printStackTrace(); }
+} }
+
+
+
+
+
+#AES
+
+
+
+
+
+import java.io.UnsupportedEncodingException; import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException; import java.util.Arrays;
+import java.util.Base64;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+public class AES {
+private static SecretKeySpec secretKey; private static byte[] key;
+public static void setKey(String myKey) { MessageDigest sha = null;
+try {
+key = myKey.getBytes("UTF-8");
+sha = MessageDigest.getInstance("SHA-1"); key = sha.digest(key);
+key = Arrays.copyOf(key, 16);
+secretKey = new SecretKeySpec(key, "AES");
+} catch (NoSuchAlgorithmException e) {
+  
+   e.printStackTrace();
+} catch (UnsupportedEncodingException e) {
+} } e.printStackTrace();
+public static String encrypt(String strToEncrypt, String secret) { try {
+setKey(secret);
+Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding"); cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+return
+Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF -8")));
+} catch (Exception e) {
+} System.out.println("Error while encrypting: " + e.toString());
+} return null;
+public static String decrypt(String strToDecrypt, String secret) { try {
+setKey(secret);
+Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5PADDING"); cipher.init(Cipher.DECRYPT_MODE, secretKey);
+return new
+String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt))); } catch (Exception e) {
+} System.out.println("Error while decrypting: " + e.toString());
+} return null;
+public static void main(String[] args) {
+final String secretKey = "annaUniversity";
+String originalString = "www.annauniv.edu";
+String encryptedString = AES.encrypt(originalString, secretKey); String decryptedString = AES.decrypt(encryptedString, secretKey);
+ 
+System.out.println("URL Encryption Using AES Algorithm\n------------"); System.out.println("Original URL : " + originalString); System.out.println("Encrypted URL : " + encryptedString);
+} } System.out.println("Decrypted URL : " + decryptedString);
+
+
+
+
+
+
+#RAS
+
+
+
+
+
+<html>
+t = cd mod n
+<head>
+<title>RSA Encryption</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body> <center>
+<h1>RSA Algorithm</h1>
+<h2>Implemented Using HTML & Javascript</h2> <hr>
+<table>
+<tr>
+<td>Enter First Prime Number:</td>
+<td><input type="number" value="53" id="p"></td>
+</tr> <tr>
+<td>Enter Second Prime Number:</td>
+<td><input type="number" value="59" id="q"></p>
+   </td> </tr>
+<tr>
+<td>Enter the Message(cipher text):<br>[A=1, B=2,...]</td> <td><input type="number" value="89" id="msg"></p> </td>
+</tr> <tr>
+<td>Public Key:</td> <td>
+<p id="publickey"></p> </td>
+</tr> <tr>
+<td>Exponent:</td> <td>
+<p id="exponent"></p> </td>
+</tr> <tr>
+<td>Private Key:</td> <td>
+<p id="privatekey"></p> </td>
+</tr> <tr>
+<td>Cipher Text:</td> <td>
+<p id="ciphertext"></p> </td>
+</tr> <tr>
+<td><button onclick="RSA();">Apply RSA</button></td> </tr>
+</table> </center>
+</body>
+<script type="text/javascript">
+function RSA() {
+var gcd, p, q, no, n, t, e, i, x;
+ 
+gcd = function (a, b) { return (!b) ? a : gcd(b, a % b); }; p = document.getElementById('p').value;
+q = document.getElementById('q').value;
+no = document.getElementById('msg').value;
+n = p * q;
+t = (p - 1) * (q - 1);
+for (e = 2; e < t; e++) { if (gcd(e, t) == 1) {
+} } break;
+for (i = 0; i < 10; i++) { x=1+i*t
+if (x % e == 0) {
+d = x / e; } } break;
+ctt = Math.pow(no, e).toFixed(0); ct = ctt % n;
+dtt = Math.pow(ct, d).toFixed(0); dt = dtt % n;
+document.getElementById('publickey').innerHTML = n; document.getElementById('exponent').innerHTML = e; document.getElementById('privatekey').innerHTML = d;
+} document.getElementById('ciphertext').innerHTML = ct;
+</script> </html>
+
+
+
+
+
+
+
+
+#deffie
+
+
+
+class DiffieHellman {
+public static void main(String args[]) {
+int p = 23; /* publicly known (prime number) */
+int g = 5; /* publicly known (primitive root) */
+int x = 4; /* only Alice knows this secret */
+int y = 3; /* only Bob knows this secret */
+double aliceSends = (Math.pow(g, x)) % p;
+double bobComputes = (Math.pow(aliceSends, y)) % p; double bobSends = (Math.pow(g, y)) % p;
+double aliceComputes = (Math.pow(bobSends, x)) % p;
+double sharedSecret = (Math.pow(g, (x * y))) % p; System.out.println("simulation of Diffie-Hellman key exchange algorithm\n--
+-------------------------------------------"); System.out.println("Alice Sends : " + aliceSends); System.out.println("Bob Computes : " + bobComputes); System.out.println("Bob Sends : " + bobSends);
+System.out.println("Alice Computes : " + aliceComputes); System.out.println("Shared Secret : " + sharedSecret);
+/* shared secrets should match and equality is transitive */
+if ((aliceComputes == sharedSecret) && (aliceComputes == bobComputes))
+System.out.println("Success: Shared Secrets Matches! " + sharedSecret); else
+System.out.println("Error: Shared Secrets does not Match"); }}
+
+
+
+
+
+3DIGITAL SIGNATURE
+
+
+
+
+
+
+
+
+import java.security.KeyPair;
+import java.security.KeyPairGenerator; import java.security.PrivateKey; import java.security.Signature;
+import java.util.Scanner;
+public class CreatingDigitalSignature {
+public static void main(String args[]) throws Exception {
+Scanner sc = new Scanner(System.in); System.out.println("Enter some text"); String msg = sc.nextLine();
+KeyPairGenerator keyPairGen = KeyPairGenerator.getInstance("DSA"); keyPairGen.initialize(2048);
+KeyPair pair = keyPairGen.generateKeyPair();
+PrivateKey privKey = pair.getPrivate();
+Signature sign = Signature.getInstance("SHA256withDSA");
+Digital Signature Standard
+  To implement the SIGNATURE SCHEME - Digital Signature Standard.
+sign.initSign(privKey);
+byte[] bytes = "msg".getBytes();
+sign.update(bytes);
+byte[] signature = sign.sign();
+System.out.println("Digital signature for given text: "+new String(signature, "UTF8"));
+}}
